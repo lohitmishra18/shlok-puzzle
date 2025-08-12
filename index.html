@@ -156,9 +156,9 @@
 function playMoveSound(){
   let audio = document.getElementById('move-audio');
   if (!audio) {
-  audio = document.createElement('audio'); 
+    audio = document.createElement('audio');
     audio.id = 'move-audio';
-  audio.src = 'https://cdn.jsdelivr.net/gh/lohitmishra18/shlok-puzzle@main/click.mp3'; // Working click sound (hosted in your repo)
+    audio.src = './tile.mp3'; // Use local file for tile move sound
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -169,9 +169,9 @@ function playMoveSound(){
 function primeMoveAudio() {
   let audio = document.getElementById('move-audio');
   if (!audio) {
-    audio = document.createElement('audio'); 
+    audio = document.createElement('audio');
     audio.id = 'move-audio';
-    audio.src = 'https://cdn.jsdelivr.net/gh/lohitmishra18/shlok-puzzle@main/click.mp3';
+    audio.src = './tile.mp3'; // Use local file for tile move sound
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -233,7 +233,7 @@ function playCelebrationSound(){
   if (!audio) {
     audio = document.createElement('audio');
     audio.id = 'celebration-audio';
-    audio.src = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae5b2.mp3'; // Royalty-free celebration sound
+    audio.src = './celebration.mp3'; // Use local file
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
