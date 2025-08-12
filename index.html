@@ -29,7 +29,7 @@
     select{ background:#0f1626; color:#e5ecff; border:1px solid rgba(255,255,255,.12); padding:10px 12px; border-radius:12px }
     .stat{ font-variant-numeric:tabular-nums; color:#7c8aa5 }
     .panel{ display:grid; gap:14px }
-    .preview{ aspect-ratio:4/3; width:100%; border-radius:14px; overflow:hidden; background:#0d1524; display:grid; place-items:center }
+  .preview{ max-width:100%; max-height:340px; border-radius:14px; overflow:hidden; background:#0d1524; display:flex; align-items:center; justify-content:center; }
   .preview img{ width:auto; height:auto; max-width:100%; max-height:100%; object-fit:contain; display:block; margin:auto; }
     .overlay{ position:fixed; inset:0; display:none; place-items:center; background:rgba(6,10,18,.55); backdrop-filter: blur(4px); z-index:30 }
     .overlay.show{ display:grid }
@@ -199,7 +199,12 @@
       const now=Array.from(board.children).map((el,i)=> Number(el.dataset.id)===i);
       assert('shuffle() created a non-solved layout', now.some(v=>!v));
       // Mobile sanity: pointer handlers attached
-      assert('tiles have pointerdown listeners', tiles.every(t=> getEventListeners ? !!getEventListeners(t).pointerdown : true));
+      // getEventListeners is only available in Chrome DevTools, so skip this test in browsers
+      if (typeof getEventListeners === 'function') {
+        assert('tiles have pointerdown listeners', tiles.every(t=> !!getEventListeners(t).pointerdown));
+      } else {
+        assert('tiles have pointerdown listeners (skipped: not in DevTools)', true);
+      }
 
       const ul=document.getElementById('testList'); ul.innerHTML='';
       results.forEach(r=>{ const li=document.createElement('li'); li.textContent=`${r.pass?'✓':'✗'} ${r.name}`; li.className=r.pass?'pass':'fail'; ul.appendChild(li); });
