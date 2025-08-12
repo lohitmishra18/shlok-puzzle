@@ -220,6 +220,20 @@ function primeCelebrationAudio() {
   audio.play().then(()=>{ audio.pause(); audio.currentTime = 0; audio.volume = 1; }).catch(()=>{});
 }
 
+// Prime move audio for browser autoplay policies
+function primeMoveAudio() {
+  let audio = document.getElementById('move-audio');
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'move-audio';
+    audio.src = './tile.mp3';
+    audio.preload = 'auto';
+    document.body.appendChild(audio);
+  }
+  audio.volume = 0;
+  audio.play().then(()=>{ audio.pause(); audio.currentTime = 0; audio.volume = 1; }).catch(()=>{});
+}
+
     // ---------- Shuffle / Reset ----------
     function shuffle(){ const idx=tiles.map((_,i)=>i); for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; } if(idx.every((v,i)=>v===i)&&idx.length>1){ [idx[0],idx[1]]=[idx[1],idx[0]]; } const frag=document.createDocumentFragment(); idx.forEach(i=> frag.appendChild(tiles[i])); board.innerHTML=''; board.appendChild(frag); tiles=Array.from(board.children); resetStats(); startTimer(); statusEl.textContent='Arrange tiles to match the preview →'; }
     function reset(){ buildBoard(); resetStats(); stopTimer(); statusEl.textContent='Ready.'; }
