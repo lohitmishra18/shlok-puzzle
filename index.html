@@ -90,7 +90,6 @@
           <div>Time: <strong id="time">00:00</strong></div>
           <div id="status" aria-live="polite"></div>
         </div>
-        <details id="testPanel"><summary class="stat">Diagnostics (click to view tests)</summary><ul id="testList" class="stat"></ul></details>
       </section>
 
       <aside class="card panel">
@@ -98,7 +97,6 @@
         <div class="upload">
           <label class="stat">Use your own photo</label>
           <input id="fileInput" type="file" accept="image/*" />
-          <span class="tip">Tip: Any photo will be stretched to fit 4:3 across 12 tiles.</span>
         </div>
       </aside>
     </div>
@@ -321,27 +319,7 @@ function primeMoveAudio() {
   $('#resetBtn').addEventListener('click', ()=>{ primeCelebrationAudio(); primeMoveAudio(); reset(); });
 
     // ---------- Init & tests ----------
-    (async function init(){ await setImage('./Shlok.jpg'); runSelfTests(); })();
-
-    function runSelfTests(){
-      const results=[]; const assert=(n,c)=>results.push({name:n,pass:!!c});
-      assert('pad(5) → "05"', pad(5)==='05');
-      assert('formatTime(0) → 00:00', formatTime(0)==='00:00');
-      assert('board has 16 tiles', board.children.length===ROWS*COLS); // fixed message
-      const now=Array.from(board.children).map((el,i)=> Number(el.dataset.id)===i);
-      assert('shuffle() created a non-solved layout', now.some(v=>!v));
-      // Mobile sanity: pointer handlers attached
-      // getEventListeners is only available in Chrome DevTools, so skip this test in browsers
-      if (typeof getEventListeners === 'function') {
-        assert('tiles have pointerdown listeners', tiles.every(t=> !!getEventListeners(t).pointerdown));
-      } else {
-        assert('tiles have pointerdown listeners (skipped: not in DevTools)', true);
-      }
-
-      const ul=document.getElementById('testList'); ul.innerHTML='';
-      results.forEach(r=>{ const li=document.createElement('li'); li.textContent=`${r.pass?'✓':'✗'} ${r.name}`; li.className=r.pass?'pass':'fail'; ul.appendChild(li); });
-      console.table(results);
-    }
+    (async function init(){ await setImage('./Shlok.jpg');})();
   </script>
 </body>
 </html>
