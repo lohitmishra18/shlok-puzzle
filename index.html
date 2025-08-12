@@ -94,6 +94,7 @@
     // 12 tiles: 3 rows × 4 cols
     const ROWS = 3, COLS = 4;
     let currentSrc='./Shlok.jpg';
+    let originalSrc='./Shlok.jpg';
     let tiles=[], timer=null, startTime=null, moves=0;
 
     // ---------- Utils ----------
@@ -151,7 +152,25 @@
 
     // ---------- Image load: STRETCH to 4:3 (no letterboxing) ----------
     function loadImage(src){ return new Promise((res,rej)=>{ const img=new Image(); img.crossOrigin='anonymous'; img.onload=()=>res(img); img.onerror=()=>rej(new Error('Image failed')); img.src=src; }); }
-    async function setImage(src){ try{ const img=await loadImage(src); const W=1200, H=900; const can=document.createElement('canvas'); can.width=W; can.height=H; const ctx=can.getContext('2d'); ctx.drawImage(img, 0,0,W,H); const url=can.toDataURL('image/jpeg',0.92); currentSrc=url; previewImg.src=url; buildBoard(); shuffle(); }catch(e){ console.error(e); alert('Could not load that image. Check the path or try another file.'); }}
+    async function setImage(src){
+      try{
+        originalSrc = src;
+        const img=await loadImage(src);
+        const W=1200, H=900;
+        const can=document.createElement('canvas');
+        can.width=W; can.height=H;
+        const ctx=can.getContext('2d');
+        ctx.drawImage(img, 0,0,W,H);
+        const url=can.toDataURL('image/jpeg',0.92);
+        currentSrc=url;
+        previewImg.src=originalSrc;
+        buildBoard();
+        shuffle();
+      }catch(e){
+        console.error(e);
+        alert('Could not load that image. Check the path or try another file.');
+      }
+    }
 
     // ---------- Celebration ----------
     const overlay=$('#winOverlay'), fm=$('#finalMoves'), ft=$('#finalTime');
