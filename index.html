@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -151,7 +149,6 @@
       checkSolved();
     }
 
-
 // --- Sound effect for tile move ---
 function playMoveSound(){
   let audio = document.getElementById('move-audio');
@@ -166,12 +163,27 @@ function playMoveSound(){
   audio.play();
 }
 
-function primeMoveAudio() {
-  let audio = document.getElementById('move-audio');
+// --- Sound effect for celebration ---
+function playCelebrationSound(){
+  let audio = document.getElementById('celebration-audio');
   if (!audio) {
     audio = document.createElement('audio');
-    audio.id = 'move-audio';
-    audio.src = './tile.mp3'; // Use local file for tile move sound
+    audio.id = 'celebration-audio';
+    audio.src = './celebration.mp3'; // Use local file
+    audio.preload = 'auto';
+    document.body.appendChild(audio);
+  }
+  audio.currentTime = 0;
+  audio.play();
+}
+
+// Prime celebration audio for browser autoplay policies
+function primeCelebrationAudio() {
+  let audio = document.getElementById('celebration-audio');
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'celebration-audio';
+    audio.src = './celebration.mp3';
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -210,8 +222,15 @@ function primeMoveAudio() {
 
     // ---------- Celebration ----------
     const overlay=$('#winOverlay'), fm=$('#finalMoves'), ft=$('#finalTime');
-    $('#closeOverlay').addEventListener('click', ()=> overlay.classList.remove('show'));
-    $('#playAgain').addEventListener('click', ()=>{ overlay.classList.remove('show'); shuffle(); });
+    $('#closeOverlay').addEventListener('click', ()=>{
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden','true');
+    });
+    $('#playAgain').addEventListener('click', ()=>{
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden','true');
+      shuffle();
+    });
     function celebrate(){
       fm.textContent=String(moves);
       ft.textContent=timeEl.textContent;
@@ -227,19 +246,6 @@ function primeMoveAudio() {
     function runConfetti(){
       confetti = Array.from({length:220}, makePiece);
   let t = 0, dur = 4800; // Increased duration by 2.4s (now ~4.8s)
-// Celebration sound
-function playCelebrationSound(){
-  let audio = document.getElementById('celebration-audio');
-  if (!audio) {
-    audio = document.createElement('audio');
-    audio.id = 'celebration-audio';
-    audio.src = './celebration.mp3'; // Use local file
-    audio.preload = 'auto';
-    document.body.appendChild(audio);
-  }
-  audio.currentTime = 0;
-  audio.play();
-}
       (function frame(){
         t += 16;
         cctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
@@ -272,7 +278,7 @@ function playCelebrationSound(){
       const results=[]; const assert=(n,c)=>results.push({name:n,pass:!!c});
       assert('pad(5) → "05"', pad(5)==='05');
       assert('formatTime(0) → 00:00', formatTime(0)==='00:00');
-      assert('board has 12 tiles', board.children.length===ROWS*COLS);
+      assert('board has 16 tiles', board.children.length===ROWS*COLS); // fixed message
       const now=Array.from(board.children).map((el,i)=> Number(el.dataset.id)===i);
       assert('shuffle() created a non-solved layout', now.some(v=>!v));
       // Mobile sanity: pointer handlers attached
