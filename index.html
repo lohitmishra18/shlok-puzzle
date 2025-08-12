@@ -1,3 +1,18 @@
+// Prime celebration audio on first user interaction to allow playback
+function primeCelebrationAudio() {
+  let audio = document.getElementById('celebration-audio');
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'celebration-audio';
+    audio.src = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae5b2.mp3';
+    audio.preload = 'auto';
+    document.body.appendChild(audio);
+  }
+  // Play and immediately pause to prime
+  audio.volume = 0;
+  audio.play().then(()=>{ audio.pause(); audio.currentTime = 0; audio.volume = 1; }).catch(()=>{});
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -143,6 +158,35 @@
     function swapTiles(a,b){ if(a===b) return; const parent=board; const A=tiles[a], B=tiles[b]; if(!A||!B) return;
       const ph=document.createElement('div'); parent.insertBefore(ph,A); parent.replaceChild(A,B); parent.replaceChild(B,ph); ph.remove();
       const t=tiles[a]; tiles[a]=tiles[b]; tiles[b]=t; moves++; movesEl.textContent=String(moves); checkSolved(); }
+      playMoveSound();
+    }
+
+// Move sound effect
+function playMoveSound(){
+  let audio = document.getElementById('move-audio');
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'move-audio';
+    audio.src = 'https://cdn.pixabay.com/audio/2022/10/16/audio_12c6b6b6b7.mp3'; // Royalty-free click sound
+    audio.preload = 'auto';
+    document.body.appendChild(audio);
+  }
+  audio.currentTime = 0;
+  audio.play();
+}
+
+function primeMoveAudio() {
+  let audio = document.getElementById('move-audio');
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'move-audio';
+    audio.src = 'https://cdn.pixabay.com/audio/2022/10/16/audio_12c6b6b6b7.mp3';
+    audio.preload = 'auto';
+    document.body.appendChild(audio);
+  }
+  audio.volume = 0;
+  audio.play().then(()=>{ audio.pause(); audio.currentTime = 0; audio.volume = 1; }).catch(()=>{});
+}
 
     // ---------- Shuffle / Reset ----------
     function shuffle(){ const idx=tiles.map((_,i)=>i); for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; } if(idx.every((v,i)=>v===i)&&idx.length>1){ [idx[0],idx[1]]=[idx[1],idx[0]]; } const frag=document.createDocumentFragment(); idx.forEach(i=> frag.appendChild(tiles[i])); board.innerHTML=''; board.appendChild(frag); tiles=Array.from(board.children); resetStats(); startTimer(); statusEl.textContent='Arrange tiles to match the preview →'; }
@@ -226,8 +270,9 @@ function playCelebrationSound(){
     function runBalloons(){ const colors=['#fca5a5','#fdba74','#fde68a','#86efac','#93c5fd','#c4b5fd','#f0abfc']; for(let i=0;i<16;i++){ const b=document.createElement('div'); b.className='balloon'; b.style.left=Math.random()*100+'vw'; b.style.background=colors[Math.floor(Math.random()*colors.length)]; const dur=2.2+Math.random()*2.2, delay=Math.random()*0.4; b.style.animation=`floatUp ${dur}s ease-out ${delay}s forwards`; document.body.appendChild(b); setTimeout(()=>b.remove(), (dur+delay)*1000+200); }}
 
     // ---------- Events ----------
-    $('#fileInput').addEventListener('change', (e)=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=> setImage(r.result); r.onerror=()=> alert('File read failed'); r.readAsDataURL(f); });
-    $('#shuffleBtn').addEventListener('click', shuffle); $('#resetBtn').addEventListener('click', reset);
+  $('#fileInput').addEventListener('change', (e)=>{ primeCelebrationAudio(); primeMoveAudio(); const f=e.target.files&&e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=> setImage(r.result); r.onerror=()=> alert('File read failed'); r.readAsDataURL(f); });
+  $('#shuffleBtn').addEventListener('click', ()=>{ primeCelebrationAudio(); primeMoveAudio(); shuffle(); });
+  $('#resetBtn').addEventListener('click', ()=>{ primeCelebrationAudio(); primeMoveAudio(); reset(); });
 
     // ---------- Init & tests ----------
     (async function init(){ await setImage('./Shlok.jpg'); runSelfTests(); })();
