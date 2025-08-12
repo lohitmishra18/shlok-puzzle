@@ -30,7 +30,7 @@
     .stat{ font-variant-numeric:tabular-nums; color:#7c8aa5 }
     .panel{ display:grid; gap:14px }
     .preview{ aspect-ratio:4/3; width:100%; border-radius:14px; overflow:hidden; background:#0d1524; display:grid; place-items:center }
-    .preview img{ width:100%; height:100%; object-fit:cover }
+  .preview img{ width:auto; height:auto; max-width:100%; max-height:100%; object-fit:contain; display:block; margin:auto; }
     .overlay{ position:fixed; inset:0; display:none; place-items:center; background:rgba(6,10,18,.55); backdrop-filter: blur(4px); z-index:30 }
     .overlay.show{ display:grid }
     .modal{ background:#0e1629; border:1px solid rgba(255,255,255,.12); border-radius:20px; padding:28px; text-align:center; width:min(520px, 92vw) }
@@ -161,7 +161,27 @@
 
     const confettiCanvas=document.getElementById('confetti'); const cctx=confettiCanvas.getContext('2d'); let confetti=[]; function resize(){ confettiCanvas.width=innerWidth; confettiCanvas.height=innerHeight; } addEventListener('resize', resize); resize();
     function makePiece(){ return { x:Math.random()*confettiCanvas.width, y:-20, size:6+Math.random()*6, rot:Math.random()*Math.PI, color:['#5eead4','#a78bfa','#f472b6','#facc15','#60a5fa'][Math.floor(Math.random()*5)], speed:2+Math.random()*3, drift:-1+Math.random()*2 }; }
-    function runConfetti(){ confetti=Array.from({length:220}, makePiece); let t=0, dur=2400; (function frame(){ t+=16; cctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); confetti.forEach(p=>{ p.y+=p.speed; p.x+=p.drift; p.rot+=0.05; cctx.save(); cctx.translate(p.x,p.y); cctx.rotate(p.rot); cctx.fillStyle=p.color; cctx.fillRect(-p.size/2,-p.size/2,p.size,p.size); cctx.restore();}); if(t<dur) requestAnimationFrame(frame); })(); }
+    function runConfetti(){
+      confetti = Array.from({length:220}, makePiece);
+      let t = 0, dur = 2400;
+      (function frame(){
+        t += 16;
+        cctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+        confetti.forEach(p=>{
+          p.y += p.speed; p.x += p.drift; p.rot += 0.05;
+          cctx.save(); cctx.translate(p.x,p.y); cctx.rotate(p.rot);
+          cctx.fillStyle = p.color; cctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+          cctx.restore();
+        });
+        if(t < dur) {
+          requestAnimationFrame(frame);
+        } else {
+          // Clear confetti after animation
+          confetti.length = 0;
+          cctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+        }
+      })();
+    }
     function runBalloons(){ const colors=['#fca5a5','#fdba74','#fde68a','#86efac','#93c5fd','#c4b5fd','#f0abfc']; for(let i=0;i<16;i++){ const b=document.createElement('div'); b.className='balloon'; b.style.left=Math.random()*100+'vw'; b.style.background=colors[Math.floor(Math.random()*colors.length)]; const dur=2.2+Math.random()*2.2, delay=Math.random()*0.4; b.style.animation=`floatUp ${dur}s ease-out ${delay}s forwards`; document.body.appendChild(b); setTimeout(()=>b.remove(), (dur+delay)*1000+200); }}
 
     // ---------- Events ----------
