@@ -91,8 +91,8 @@
     const $ = (s)=>document.querySelector(s);
     const board=$('#board'), movesEl=$('#moves'), timeEl=$('#time'), statusEl=$('#status'), previewImg=$('#previewImg');
 
-    // 12 tiles: 3 rows × 4 cols
-    const ROWS = 3, COLS = 4;
+  // 16 tiles: 4 rows × 4 cols
+  const ROWS = 4, COLS = 4;
     let currentSrc='./Shlok.jpg';
     let originalSrc='./Shlok.jpg';
     let tiles=[], timer=null, startTime=null, moves=0;
@@ -118,7 +118,8 @@
         tile.style.backgroundImage=`url('${currentSrc}')`;
         // stretch across the grid
         tile.style.backgroundSize=`${COLS*100}% ${ROWS*100}%`;
-        const px=(c/(COLS-1))*100, py=(r/(ROWS-1))*100;
+        // Avoid division by zero for 1 column/row
+        const px=(COLS>1)?(c/(COLS-1))*100:0, py=(ROWS>1)?(r/(ROWS-1))*100:0;
         tile.style.backgroundPosition=`${px.toFixed(4)}% ${py.toFixed(4)}%`;
         addInteractions(tile);
         board.appendChild(tile); tiles.push(tile);
@@ -176,13 +177,34 @@
     const overlay=$('#winOverlay'), fm=$('#finalMoves'), ft=$('#finalTime');
     $('#closeOverlay').addEventListener('click', ()=> overlay.classList.remove('show'));
     $('#playAgain').addEventListener('click', ()=>{ overlay.classList.remove('show'); shuffle(); });
-    function celebrate(){ fm.textContent=String(moves); ft.textContent=timeEl.textContent; overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); runConfetti(); runBalloons(); }
+    function celebrate(){
+      fm.textContent=String(moves);
+      ft.textContent=timeEl.textContent;
+      overlay.classList.add('show');
+      overlay.setAttribute('aria-hidden','false');
+      runConfetti();
+      runBalloons();
+      playCelebrationSound();
+    }
 
     const confettiCanvas=document.getElementById('confetti'); const cctx=confettiCanvas.getContext('2d'); let confetti=[]; function resize(){ confettiCanvas.width=innerWidth; confettiCanvas.height=innerHeight; } addEventListener('resize', resize); resize();
     function makePiece(){ return { x:Math.random()*confettiCanvas.width, y:-20, size:6+Math.random()*6, rot:Math.random()*Math.PI, color:['#5eead4','#a78bfa','#f472b6','#facc15','#60a5fa'][Math.floor(Math.random()*5)], speed:2+Math.random()*3, drift:-1+Math.random()*2 }; }
     function runConfetti(){
       confetti = Array.from({length:220}, makePiece);
-      let t = 0, dur = 2400;
+  let t = 0, dur = 4800; // Increased duration by 2.4s (now ~4.8s)
+// Celebration sound
+function playCelebrationSound(){
+  let audio = document.getElementById('celebration-audio');
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'celebration-audio';
+    audio.src = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae5b2.mp3'; // Royalty-free celebration sound
+    audio.preload = 'auto';
+    document.body.appendChild(audio);
+  }
+  audio.currentTime = 0;
+  audio.play();
+}
       (function frame(){
         t += 16;
         cctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
