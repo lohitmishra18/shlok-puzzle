@@ -17,9 +17,9 @@
     .badge{ font-size:12px; padding:6px 10px; border-radius:999px; background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#05221c; font-weight:700 }
     .card{ background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.08); backdrop-filter: blur(8px); border-radius:var(--radius); padding:18px }
     .grid{ display:grid; grid-template-columns: 1fr 360px; gap:16px } @media (max-width:980px){ .grid{ grid-template-columns:1fr } }
-    .board{ aspect-ratio:1/1; width:100%; min-height:300px; background:#0a0f1b; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,.08); display:grid; gap:2px }
-    .tile{ user-select:none; background:#101827; cursor:grab; transition:transform .08s ease; outline:1px solid rgba(255,255,255,.04); background-repeat:no-repeat; background-origin:border-box; border-radius:6px }
-    .tile:active{ cursor:grabbing; transform:scale(.98) }
+    .board{ aspect-ratio:4/3; width:100%; min-height:300px; background:#0a0f1b; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,.08); display:grid; gap:2px }
+    .tile{ user-select:none; background:#101827; cursor:pointer; transition:transform .08s ease; outline:1px solid rgba(255,255,255,.04); background-repeat:no-repeat; background-origin:border-box; border-radius:6px; touch-action: manipulation; }
+    .tile.active{ transform:scale(.96) }
     .tile.correct{ outline-color: rgba(94,234,212,.6); box-shadow: inset 0 0 0 2px rgba(94,234,212,.35) }
     .controls{ display:flex; flex-wrap:wrap; gap:10px; align-items:center }
     .btn{ appearance:none; border:0; padding:10px 14px; border-radius:12px; font-weight:700; letter-spacing:.3px; background:#101826; color:#e6f6ff; border:1px solid rgba(255,255,255,.09); cursor:pointer }
@@ -27,10 +27,10 @@
     .btn.primary{ background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#081118 }
     .btn.ghost{ background:transparent }
     select{ background:#0f1626; color:#e5ecff; border:1px solid rgba(255,255,255,.12); padding:10px 12px; border-radius:12px }
-    .stat{ font-variant-numeric:tabular-nums; color:var(--muted) }
+    .stat{ font-variant-numeric:tabular-nums; color:#7c8aa5 }
     .panel{ display:grid; gap:14px }
-    .preview{ aspect-ratio:1/1; width:100%; border-radius:14px; overflow:hidden; background:#0d1524; display:grid; place-items:center }
-    .preview img{ width:100%; height:100%; object-fit:contain }
+    .preview{ aspect-ratio:4/3; width:100%; border-radius:14px; overflow:hidden; background:#0d1524; display:grid; place-items:center }
+    .preview img{ width:100%; height:100%; object-fit:cover }
     .overlay{ position:fixed; inset:0; display:none; place-items:center; background:rgba(6,10,18,.55); backdrop-filter: blur(4px); z-index:30 }
     .overlay.show{ display:grid }
     .modal{ background:#0e1629; border:1px solid rgba(255,255,255,.12); border-radius:20px; padding:28px; text-align:center; width:min(520px, 92vw) }
@@ -39,6 +39,7 @@
     .balloon::after{ content:''; position:absolute; bottom:-10px; left:50%; width:8px; height:10px; background:currentColor; border-radius:2px; transform:translateX(-50%) rotate(10deg); filter:brightness(.9) }
     @keyframes floatUp{ 0%{ transform:translateY(0) scale(1); opacity:.95 } 80%{ transform:translateY(-110vh) scale(1.05) } 100%{ transform:translateY(-120vh) scale(1.3); opacity:0 } }
     details#testPanel{ margin-top:14px; opacity:.85 } details#testPanel summary{ cursor:pointer } .pass{ color:#86efac } .fail{ color:#fca5a5 }
+    @media (max-width:640px){ .grid{ gap:12px } .controls{ gap:8px } .btn{ padding:10px 12px } }
   </style>
 </head>
 <body>
@@ -47,12 +48,6 @@
     <header>
       <div class="title"><span class="badge">Puzzle</span><h1>Shlok Picture Puzzle</h1></div>
       <div class="controls">
-        <label class="stat" for="size">Grid</label>
-        <select id="size" aria-label="Grid size">
-          <option value="3">3 × 3 (Easy)</option>
-          <option value="4" selected>4 × 4 (Medium)</option>
-          <option value="5">5 × 5 (Hard)</option>
-        </select>
         <button class="btn" id="shuffleBtn">Shuffle</button>
         <button class="btn ghost" id="resetBtn">Reset</button>
       </div>
@@ -61,7 +56,7 @@
     <div class="grid">
       <section class="card">
         <div id="board" class="board"></div>
-        <div class="stat" style="margin-top:12px; display:flex; gap:18px; align-items:center">
+        <div class="stat" style="margin-top:12px; display:flex; gap:18px; align-items:center; flex-wrap:wrap">
           <div>Moves: <strong id="moves">0</strong></div>
           <div>Time: <strong id="time">00:00</strong></div>
           <div id="status" aria-live="polite"></div>
@@ -74,7 +69,7 @@
         <div class="upload">
           <label class="stat">Use your own photo</label>
           <input id="fileInput" type="file" accept="image/*" />
-          <span class="tip">Tip: Square images look best. Your photo never leaves your device.</span>
+          <span class="tip">Tip: Any photo will be stretched to fit 4:3 across 12 tiles.</span>
         </div>
       </aside>
     </div>
@@ -94,8 +89,11 @@
   <script>
     // ---------- Elements & state ----------
     const $ = (s)=>document.querySelector(s);
-    const board=$('#board'), movesEl=$('#moves'), timeEl=$('#time'), statusEl=$('#status'), sizeSel=$('#size'), previewImg=$('#previewImg');
-    let GRID=4, currentSrc='./Shlok.jpg';
+    const board=$('#board'), movesEl=$('#moves'), timeEl=$('#time'), statusEl=$('#status'), previewImg=$('#previewImg');
+
+    // 12 tiles: 3 rows × 4 cols
+    const ROWS = 3, COLS = 4;
+    let currentSrc='./Shlok.jpg';
     let tiles=[], timer=null, startTime=null, moves=0;
 
     // ---------- Utils ----------
@@ -105,54 +103,61 @@
     const stopTimer=()=>{if(timer){clearInterval(timer);timer=null}};
     const resetStats=()=>{moves=0;movesEl.textContent='0';timeEl.textContent='00:00'};
 
-    function setBoardGrid(g){ board.style.gridTemplateColumns=`repeat(${g},1fr)`; }
+    const setBoardGrid=()=>{ board.style.gridTemplateColumns=`repeat(${COLS},1fr)`; };
 
-    // ---------- Build board ----------
+    // ---------- Build board (stretch image across 12 tiles) ----------
     function buildBoard(){
-      board.innerHTML=''; tiles=[]; setBoardGrid(GRID);
-      const total=GRID*GRID;
+      board.innerHTML=''; tiles=[]; setBoardGrid();
+      const total=ROWS*COLS;
       for(let i=0;i<total;i++){
-        const r=Math.floor(i/GRID), c=i%GRID;
+        const r=Math.floor(i/COLS), c=i%COLS;
         const tile=document.createElement('div');
-        tile.className='tile'; tile.draggable=true; tile.dataset.correct=i;
+        tile.className='tile'; tile.draggable=false; // disable native drag on mobile; we use tap-swap
+        tile.dataset.id = i;      // immutable id
         tile.style.backgroundImage=`url('${currentSrc}')`;
-        // Important: set size and position per-tile so edges never go blank
-        tile.style.backgroundSize=`${GRID*100}% ${GRID*100}%`;
-        const px=(c/(GRID-1))*100, py=(r/(GRID-1))*100;
+        // stretch across the grid
+        tile.style.backgroundSize=`${COLS*100}% ${ROWS*100}%`;
+        const px=(c/(COLS-1))*100, py=(r/(ROWS-1))*100;
         tile.style.backgroundPosition=`${px.toFixed(4)}% ${py.toFixed(4)}%`;
-        addDnD(tile);
+        addInteractions(tile);
         board.appendChild(tile); tiles.push(tile);
       }
     }
 
-    // ---------- DnD / Tap-to-swap ----------
-    function addDnD(tile){
-      tile.addEventListener('dragstart', (e)=>{ try{ e.dataTransfer&& (e.dataTransfer.effectAllowed='move', e.dataTransfer.setData('text/plain', String(tiles.indexOf(tile)))); }catch(err){console.error(err)} });
-      tile.addEventListener('dragover', e=> e.preventDefault());
-      tile.addEventListener('drop', (e)=>{ try{ e.preventDefault(); const from=Number(e.dataTransfer.getData('text/plain')); const to=tiles.indexOf(tile); if(!Number.isNaN(from) && from!==to && to>-1) swapTiles(from,to);}catch(err){console.error(err)} });
-      tile.addEventListener('click', handleTapSwap);
+    // ---------- Mobile-first interactions: tap-to-swap (fast) ----------
+    let firstIdx=null;
+    function addInteractions(tile){
+      // Pointer events cover mouse & touch
+      tile.addEventListener('pointerdown', (e)=>{
+        e.preventDefault(); // avoid long-press drag, text selection
+        const idx = tiles.indexOf(tile);
+        if(firstIdx===null){ firstIdx=idx; tile.classList.add('active'); return; }
+        if(firstIdx!==idx){ swapTiles(firstIdx, idx); }
+        tiles[firstIdx]?.classList.remove('active');
+        firstIdx=null;
+      });
     }
 
-    let firstTapIndex=null; function handleTapSwap(e){ try{ const idx=tiles.indexOf(e.currentTarget); if(idx===-1) return; if(firstTapIndex===null){ firstTapIndex=idx; tiles[idx].style.transform='scale(.96)'; setTimeout(()=> tiles[idx]&&(tiles[idx].style.transform=''),200); return;} if(firstTapIndex!==idx) swapTiles(firstTapIndex, idx); firstTapIndex=null; }catch(err){console.error(err)} }
-
-    function swapTiles(a,b){ if(a===b) return; const parent=board; const A=tiles[a], B=tiles[b]; if(!A||!B) return; const ph=document.createElement('div'); parent.insertBefore(ph, A); parent.replaceChild(A,B); parent.replaceChild(B,ph); ph.remove(); const t=tiles[a]; tiles[a]=tiles[b]; tiles[b]=t; moves++; movesEl.textContent=String(moves); checkSolved(); }
+    function swapTiles(a,b){ if(a===b) return; const parent=board; const A=tiles[a], B=tiles[b]; if(!A||!B) return;
+      const ph=document.createElement('div'); parent.insertBefore(ph,A); parent.replaceChild(A,B); parent.replaceChild(B,ph); ph.remove();
+      const t=tiles[a]; tiles[a]=tiles[b]; tiles[b]=t; moves++; movesEl.textContent=String(moves); checkSolved(); }
 
     // ---------- Shuffle / Reset ----------
-    function shuffle(){ const idx=tiles.map((_,i)=>i); for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; } if(idx.every((v,i)=>v===i)&&idx.length>1){ [idx[0],idx[1]]=[idx[1],idx[0]]; } const frag=document.createDocumentFragment(); const nt=[]; idx.forEach(i=>{ frag.appendChild(tiles[i]); nt.push(tiles[i]); }); board.innerHTML=''; board.appendChild(frag); tiles=nt; resetStats(); startTimer(); statusEl.textContent='Arrange tiles to match the preview →'; }
+    function shuffle(){ const idx=tiles.map((_,i)=>i); for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; } if(idx.every((v,i)=>v===i)&&idx.length>1){ [idx[0],idx[1]]=[idx[1],idx[0]]; } const frag=document.createDocumentFragment(); idx.forEach(i=> frag.appendChild(tiles[i])); board.innerHTML=''; board.appendChild(frag); tiles=Array.from(board.children); resetStats(); startTimer(); statusEl.textContent='Arrange tiles to match the preview →'; }
     function reset(){ buildBoard(); resetStats(); stopTimer(); statusEl.textContent='Ready.'; }
 
     // ---------- Solved? ----------
-    function checkSolved(){ let ok=true, correctCount=0; for(let pos=0;pos<tiles.length;pos++){ const cor=+tiles[pos].dataset.correct; if(cor!==pos){ ok=false; tiles[pos].classList.remove('correct'); } else { tiles[pos].classList.add('correct'); correctCount++; } } statusEl.dataset.correctCount=String(correctCount); if(ok){ stopTimer(); celebrate(); statusEl.textContent='Solved!'; } }
+    function checkSolved(){ const kids=Array.from(board.children); let ok=true; for(let pos=0; pos<kids.length; pos++){ const id=Number(kids[pos].dataset.id); if(id!==pos){ ok=false; kids[pos].classList.remove('correct'); } else kids[pos].classList.add('correct'); } if(ok){ stopTimer(); celebrate(); statusEl.textContent='Solved!'; } }
 
-    // ---------- Image load (square letterbox) ----------
+    // ---------- Image load: STRETCH to 4:3 (no letterboxing) ----------
     function loadImage(src){ return new Promise((res,rej)=>{ const img=new Image(); img.crossOrigin='anonymous'; img.onload=()=>res(img); img.onerror=()=>rej(new Error('Image failed')); img.src=src; }); }
-    async function setImage(src){ try{ const img=await loadImage(src); const side=Math.min(1400, Math.max(img.width,img.height)); const can=document.createElement('canvas'); can.width=can.height=side; const ctx=can.getContext('2d'); ctx.fillStyle='#0d1524'; ctx.fillRect(0,0,side,side); const sc=Math.min(side/img.width, side/img.height); const w=img.width*sc, h=img.height*sc; ctx.drawImage(img, (side-w)/2, (side-h)/2, w, h); const url=can.toDataURL('image/jpeg',0.92); currentSrc=url; previewImg.src=url; buildBoard(); shuffle(); }catch(e){ console.error(e); alert('Could not load that image. Check the path or try another file.'); }}
+    async function setImage(src){ try{ const img=await loadImage(src); const W=1200, H=900; const can=document.createElement('canvas'); can.width=W; can.height=H; const ctx=can.getContext('2d'); ctx.drawImage(img, 0,0,W,H); const url=can.toDataURL('image/jpeg',0.92); currentSrc=url; previewImg.src=url; buildBoard(); shuffle(); }catch(e){ console.error(e); alert('Could not load that image. Check the path or try another file.'); }}
 
     // ---------- Celebration ----------
     const overlay=$('#winOverlay'), fm=$('#finalMoves'), ft=$('#finalTime');
     $('#closeOverlay').addEventListener('click', ()=> overlay.classList.remove('show'));
     $('#playAgain').addEventListener('click', ()=>{ overlay.classList.remove('show'); shuffle(); });
-    function celebrate(){ fm.textContent=String(moves); ft.textContent=timeEl.textContent; overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); runConfetti(); runBalloons(); console.log('Celebration triggered'); }
+    function celebrate(){ fm.textContent=String(moves); ft.textContent=timeEl.textContent; overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); runConfetti(); runBalloons(); }
 
     const confettiCanvas=document.getElementById('confetti'); const cctx=confettiCanvas.getContext('2d'); let confetti=[]; function resize(){ confettiCanvas.width=innerWidth; confettiCanvas.height=innerHeight; } addEventListener('resize', resize); resize();
     function makePiece(){ return { x:Math.random()*confettiCanvas.width, y:-20, size:6+Math.random()*6, rot:Math.random()*Math.PI, color:['#5eead4','#a78bfa','#f472b6','#facc15','#60a5fa'][Math.floor(Math.random()*5)], speed:2+Math.random()*3, drift:-1+Math.random()*2 }; }
@@ -161,12 +166,25 @@
 
     // ---------- Events ----------
     $('#fileInput').addEventListener('change', (e)=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=> setImage(r.result); r.onerror=()=> alert('File read failed'); r.readAsDataURL(f); });
-    $('#shuffleBtn').addEventListener('click', shuffle); $('#resetBtn').addEventListener('click', reset); sizeSel.addEventListener('change', ()=>{ GRID=+sizeSel.value; setImage(currentSrc); });
+    $('#shuffleBtn').addEventListener('click', shuffle); $('#resetBtn').addEventListener('click', reset);
 
     // ---------- Init & tests ----------
     (async function init(){ await setImage('./Shlok.jpg'); runSelfTests(); })();
 
-    function runSelfTests(){ const results=[]; const assert=(n,c)=>results.push({name:n,pass:!!c}); assert('pad(5) → "05"', pad(5)==='05'); assert('formatTime(0) → 00:00', formatTime(0)==='00:00'); assert('board has GRID² tiles', board.children.length===GRID*GRID); const now=Array.from(board.children).map(el=> +el.dataset.correct); assert('shuffle() created a non-solved layout', now.some((v,i)=> v!==i)); assert('isSolved() returns boolean', typeof tiles.every((el,pos)=> +el.dataset.correct===pos)==='boolean'); const ul=document.getElementById('testList'); ul.innerHTML=''; results.forEach(r=>{ const li=document.createElement('li'); li.textContent=`${r.pass?'✓':'✗'} ${r.name}`; li.className=r.pass?'pass':'fail'; ul.appendChild(li); }); console.table(results); }
+    function runSelfTests(){
+      const results=[]; const assert=(n,c)=>results.push({name:n,pass:!!c});
+      assert('pad(5) → "05"', pad(5)==='05');
+      assert('formatTime(0) → 00:00', formatTime(0)==='00:00');
+      assert('board has 12 tiles', board.children.length===ROWS*COLS);
+      const now=Array.from(board.children).map((el,i)=> Number(el.dataset.id)===i);
+      assert('shuffle() created a non-solved layout', now.some(v=>!v));
+      // Mobile sanity: pointer handlers attached
+      assert('tiles have pointerdown listeners', tiles.every(t=> getEventListeners ? !!getEventListeners(t).pointerdown : true));
+
+      const ul=document.getElementById('testList'); ul.innerHTML='';
+      results.forEach(r=>{ const li=document.createElement('li'); li.textContent=`${r.pass?'✓':'✗'} ${r.name}`; li.className=r.pass?'pass':'fail'; ul.appendChild(li); });
+      console.table(results);
+    }
   </script>
 </body>
 </html>
