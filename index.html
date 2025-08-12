@@ -157,11 +157,15 @@ function primeCelebrationAudio() {
 
     function swapTiles(a,b){ if(a===b) return; const parent=board; const A=tiles[a], B=tiles[b]; if(!A||!B) return;
       const ph=document.createElement('div'); parent.insertBefore(ph,A); parent.replaceChild(A,B); parent.replaceChild(B,ph); ph.remove();
-      const t=tiles[a]; tiles[a]=tiles[b]; tiles[b]=t; moves++; movesEl.textContent=String(moves); checkSolved(); }
+      const t=tiles[a]; tiles[a]=tiles[b]; tiles[b]=t;
       playMoveSound();
+      moves++;
+      movesEl.textContent=String(moves);
+      checkSolved();
     }
 
-// Move sound effect
+
+// --- Sound effect for tile move ---
 function playMoveSound(){
   let audio = document.getElementById('move-audio');
   if (!audio) {
