@@ -63,7 +63,7 @@ function playMoveSound(){
   if (!audio) {
     audio = document.createElement('audio');
     audio.id = 'move-audio';
-    audio.src = './assets/tile.mp3';
+    audio.src = 'assets/tile.mp3'; // Remove leading './'
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -77,7 +77,7 @@ function playCelebrationSound(){
   if (!audio) {
     audio = document.createElement('audio');
     audio.id = 'celebration-audio';
-    audio.src = './assets/celebration.mp3';
+    audio.src = 'assets/celebration.mp3'; // Remove leading './'
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -91,7 +91,7 @@ function primeCelebrationAudio() {
   if (!audio) {
     audio = document.createElement('audio');
     audio.id = 'celebration-audio';
-    audio.src = './assets/celebration.mp3';
+    audio.src = 'assets/celebration.mp3'; // Remove leading './'
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -105,7 +105,7 @@ function primeMoveAudio() {
   if (!audio) {
     audio = document.createElement('audio');
     audio.id = 'move-audio';
-    audio.src = './assets/tile.mp3';
+    audio.src = 'assets/tile.mp3'; // Remove leading './'
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -199,4 +199,4 @@ $('#shuffleBtn').addEventListener('click', ()=>{ primeCelebrationAudio(); primeM
 $('#resetBtn').addEventListener('click', ()=>{ primeCelebrationAudio(); primeMoveAudio(); reset(); });
 
 // ---------- Init ----------
-(async function init(){ await setImage('./assets/Shlok.jpg'); })();
+(async function init(){ await setImage('assets/Shlok.jpg'); })();
