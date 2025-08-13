@@ -4,8 +4,8 @@ const board=$('#board'), movesEl=$('#moves'), timeEl=$('#time'), statusEl=$('#st
 
 // 16 tiles: 4 rows × 4 cols
 const ROWS = 4, COLS = 4;
-let currentSrc='./Shlok.jpg';
-let originalSrc='./Shlok.jpg';
+let currentSrc='./assets/Shlok.jpg';
+let originalSrc='./assets/Shlok.jpg';
 let tiles=[], timer=null, startTime=null, moves=0;
 
 // ---------- Utils ----------
@@ -63,7 +63,7 @@ function playMoveSound(){
   if (!audio) {
     audio = document.createElement('audio');
     audio.id = 'move-audio';
-    audio.src = './tile.mp3';
+    audio.src = './assets/tile.mp3';
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -77,7 +77,7 @@ function playCelebrationSound(){
   if (!audio) {
     audio = document.createElement('audio');
     audio.id = 'celebration-audio';
-    audio.src = './celebration.mp3';
+    audio.src = './assets/celebration.mp3';
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -91,7 +91,7 @@ function primeCelebrationAudio() {
   if (!audio) {
     audio = document.createElement('audio');
     audio.id = 'celebration-audio';
-    audio.src = './celebration.mp3';
+    audio.src = './assets/celebration.mp3';
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -105,7 +105,7 @@ function primeMoveAudio() {
   if (!audio) {
     audio = document.createElement('audio');
     audio.id = 'move-audio';
-    audio.src = './tile.mp3';
+    audio.src = './assets/tile.mp3';
     audio.preload = 'auto';
     document.body.appendChild(audio);
   }
@@ -199,4 +199,4 @@ $('#shuffleBtn').addEventListener('click', ()=>{ primeCelebrationAudio(); primeM
 $('#resetBtn').addEventListener('click', ()=>{ primeCelebrationAudio(); primeMoveAudio(); reset(); });
 
 // ---------- Init ----------
-(async function init(){ await setImage('./Shlok.jpg');})();
+(async function init(){ await setImage('./assets/Shlok.jpg'); })();
